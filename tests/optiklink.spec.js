@@ -325,21 +325,13 @@ test('OptikLink 保活', async ({ }, testInfo) => {
         await panelPage.fill('input[name="password"]', panelPass);
 
         console.log('📤 提交控制台登录...');
-        await panelPage.click('span.sc-1qu1gou-2:has-text("Login")');
+        await panelPage.click('button[type="submit"]');
 
         console.log('⏳ 确认到达控制台首页...');
-        await panelPage.waitForURL(/control\.optiklink\.net/, { timeout: TIMEOUT });
+        await panelPage.waitForURL(url => !url.includes('/auth/login'), { timeout: TIMEOUT });
         console.log(`✅ 控制台登录成功！当前：${panelPage.url()}`);
 
         await panelPage.waitForTimeout(2000);
-
-        try {
-            const dismiss = panelPage.locator('button:has-text("Ok"), button:has-text("Close"), button:has-text("×"), [class*="dismiss"], [class*="close"]').first();
-            if (await dismiss.isVisible()) {
-                await dismiss.click();
-                console.log('✅ 已关闭提示弹窗');
-            }
-        } catch { /* 没有弹窗，继续 */ }
 
         console.log('🔍 查找服务器...');
         await panelPage.waitForTimeout(2000);
@@ -357,17 +349,7 @@ test('OptikLink 保活', async ({ }, testInfo) => {
         if (!serverInfo) throw new Error('❌ 未找到服务器卡片');
         console.log(`✅ 找到服务器：${serverInfo.name} (${serverInfo.id})`);
 
-        const serverUrlPattern = new RegExp(`control\\.optiklink\\.net/server/${serverInfo.id}`);
-
-        await panelPage.click('a[href*="/server/"]');
-
-        if (panelPage.url().includes('discord.com/oauth2')) {
-            console.log('🔍 服务器页触发二次 OAuth，处理中...');
-            await handleOAuthPage(panelPage);
-        }
-
-        console.log('⏳ 等待跳转服务器页面...');
-        await panelPage.waitForURL(serverUrlPattern, { timeout: TIMEOUT });
+        await panelPage.goto(`https://control.optiklink.net/server/${serverInfo.id}`, { waitUntil: 'domcontentloaded' });
         console.log(`✅ 已到达服务器页面：${panelPage.url()}`);
 
         const serverPage = panelPage;
