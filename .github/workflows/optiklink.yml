@@ -45,9 +45,10 @@ jobs:
         run: npx playwright test
 
       - name: 📸 上传失败截图
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: failure-screenshots
           path: test-results/
+          if-no-files-found: ignore
           retention-days: 7
